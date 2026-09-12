@@ -67,6 +67,10 @@ app.post('/api/webhook/recibir', async (req, res) => {
 
 // Arrancamos el servidor en el puerto que Render nos asigne
 const PORT = process.env.PORT || 3000;
+// Mostrar el HTML cuando alguien entre al link principal
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 app.listen(PORT, () => {
     console.log(`Servidor de DiegoMail corriendo en el puerto ${PORT}`);
 });
