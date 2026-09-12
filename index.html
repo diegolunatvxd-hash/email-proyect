@@ -1,0 +1,42 @@
+// Asegúrate de poner la URL que Render te dé para tu Web Service
+const URL_DE_TU_BACKEND = 'https://tu-backend-en-render.onrender.com';
+
+async function sendEmail() {
+    const to = document.getElementById('to').value.trim();
+    const subject = document.getElementById('subject').value.trim();
+    const body = document.getElementById('body').value.trim();
+
+    if(!to || !subject || !body) {
+        alert('Por favor llena todos los campos.');
+        return;
+    }
+
+    // Cambiamos el guardado directo en Supabase por una petición a nuestro Web Service
+    try {
+        const respuesta = await fetch(`${URL_DE_TU_BACKEND}/api/enviar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                from: currentUser,
+                to: to,
+                subject: subject,
+                body: body
+            })
+        });
+
+        const resultado = await respuesta.json();
+
+        if (resultado.success) {
+            alert('¡Correo enviado con éxito al mundo exterior!');
+            hideCompose();
+            document.getElementById('to').value = '';
+            document.getElementById('subject').value = '';
+            document.getElementById('body').value = '';
+        } else {
+            alert('Error al enviar el correo.');
+        }
+    } catch(error) {
+        alert('No se pudo conectar con el servidor.');
+        console.error(error);
+    }
+}
