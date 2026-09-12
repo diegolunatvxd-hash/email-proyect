@@ -1,42 +1,177 @@
-// Asegúrate de poner la URL que Render te dé para tu Web Service
-const URL_DE_TU_BACKEND = 'https://email-proyect.onrender.com';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiegoMail - Tu Servicio de Correo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 15px; margin-bottom: 20px; }
+        .logo { font-size: 24px; font-weight: bold; color: #0056b3; }
+        .btn { background: #0056b3; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #004494; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        
+        #login-screen { text-align: center; padding: 50px 20px; }
+        #login-screen input { padding: 10px; font-size: 16px; width: 200px; border: 1px solid #ccc; border-radius: 5px; }
+        
+        .email-list { border: 1px solid #e1e4e8; border-radius: 5px; height: 400px; overflow-y: auto; background: #fafafa; }
+        .email-item { padding: 15px; border-bottom: 1px solid #e1e4e8; cursor: pointer; transition: background 0.2s; }
+        .email-item:hover { background: #fff; box-shadow: inset 4px 0 0 #0056b3; }
+        .email-item h4 { margin: 0 0 5px 0; color: #333; }
+        .email-item p { margin: 0; color: #666; font-size: 14px; }
+        
+        #compose-box { display: none; margin-top: 20px; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; }
+        #compose-box input, #compose-box textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
 
-async function sendEmail() {
-    const to = document.getElementById('to').value.trim();
-    const subject = document.getElementById('subject').value.trim();
-    const body = document.getElementById('body').value.trim();
+    <!-- Pantalla de Inicio de Sesión -->
+    <div class="container" id="login-screen">
+        <div class="logo">✉️ DiegoMail</div>
+        <p>Inicia sesión en tu buzón</p>
+        <input type="text" id="username" placeholder="tu-nombre">
+        <span style="font-size: 18px; font-weight: bold; color: #555;">@diegomail.com</span><br><br>
+        <button class="btn" onclick="login()">Entrar al Buzón</button>
+    </div>
 
-    if(!to || !subject || !body) {
-        alert('Por favor llena todos los campos.');
-        return;
-    }
+    <!-- Pantalla Principal del Correo -->
+    <div class="container" id="mail-screen" style="display: none;">
+        <div class="header">
+            <div class="logo">✉️ DiegoMail</div>
+            <div id="user-display" style="font-weight: bold; color: #333;"></div>
+            <div>
+                <button class="btn" onclick="showCompose()">+ Redactar</button>
+                <button class="btn btn-danger" onclick="logout()">Salir</button>
+            </div>
+        </div>
 
-    // Cambiamos el guardado directo en Supabase por una petición a nuestro Web Service
-    try {
-        const respuesta = await fetch(`${URL_DE_TU_BACKEND}/api/enviar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                from: currentUser,
-                to: to,
-                subject: subject,
-                body: body
-            })
-        });
+        <h3>Bandeja de Entrada</h3>
+        <div class="email-list" id="inbox">
+            <!-- Los correos se cargarán aquí -->
+        </div>
 
-        const resultado = await respuesta.json();
+        <!-- Caja para redactar un nuevo correo -->
+        <div id="compose-box">
+            <h3>Nuevo Mensaje</h3>
+            <input type="email" id="to" placeholder="Para: (ej. amigo@diegomail.com o alguien@gmail.com)">
+            <input type="text" id="subject" placeholder="Asunto">
+            <textarea id="body" rows="6" placeholder="Escribe tu mensaje aquí..."></textarea>
+            <button class="btn" onclick="sendEmail()">Enviar Correo</button>
+            <button class="btn" style="background:#6c757d;" onclick="hideCompose()">Cancelar</button>
+        </div>
+    </div>
 
-        if (resultado.success) {
-            alert('¡Correo enviado con éxito al mundo exterior!');
-            hideCompose();
-            document.getElementById('to').value = '';
-            document.getElementById('subject').value = '';
-            document.getElementById('body').value = '';
-        } else {
-            alert('Error al enviar el correo.');
+    <script>
+        // --- CONFIGURACIÓN DE SUPABASE (Lectura de bandeja) ---
+        // NOTA: Tienes que poner tu URL y tu ANON KEY de Supabase aquí abajo para poder leer tu bandeja
+        const SUPABASE_URL = 'TU_URL_DE_SUPABASE'; 
+        const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = '';
+
+        function login() {
+            const user = document.getElementById('username').value.trim().toLowerCase();
+            if(user) {
+                currentUser = user + '@diegomail.com';
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('mail-screen').style.display = 'block';
+                document.getElementById('user-display').innerText = currentUser;
+                loadEmails();
+            } else {
+                alert("Por favor, ingresa un nombre de usuario.");
+            }
         }
-    } catch(error) {
-        alert('No se pudo conectar con el servidor.');
-        console.error(error);
-    }
-}
+
+        function logout() {
+            currentUser = '';
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('mail-screen').style.display = 'none';
+        }
+
+        function showCompose() { document.getElementById('compose-box').style.display = 'block'; }
+        function hideCompose() { document.getElementById('compose-box').style.display = 'none'; }
+
+        async function loadEmails() {
+            document.getElementById('inbox').innerHTML = '<p style="padding: 15px;">Cargando correos...</p>';
+            
+            const { data, error } = await supabase
+                .from('emails')
+                .select('*')
+                .eq('recipient', currentUser)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                document.getElementById('inbox').innerHTML = '<p style="padding: 15px; color: red;">Error al cargar bandeja.</p>';
+                return;
+            }
+
+            if (data.length === 0) {
+                document.getElementById('inbox').innerHTML = '<p style="padding: 15px;">No tienes correos nuevos. ¡Tu bandeja está limpia!</p>';
+                return;
+            }
+
+            let html = '';
+            data.forEach(email => {
+                const date = new Date(email.created_at).toLocaleString();
+                html += `
+                    <div class="email-item">
+                        <h4>Asunto: ${email.subject}</h4>
+                        <p><strong>De:</strong> ${email.sender} | <strong>Fecha:</strong> ${date}</p>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+                        <p>${email.body}</p>
+                    </div>
+                `;
+            });
+            document.getElementById('inbox').innerHTML = html;
+        }
+
+        // --- AQUÍ ESTÁ TU CÓDIGO EXACTO PARA ENVIAR CORREOS MEDIANTE EL BACKEND ---
+        const URL_DE_TU_BACKEND = 'https://email-proyect.onrender.com';
+
+        async function sendEmail() {
+            const to = document.getElementById('to').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const body = document.getElementById('body').value.trim();
+
+            if(!to || !subject || !body) {
+                alert('Por favor llena todos los campos.');
+                return;
+            }
+
+            try {
+                const respuesta = await fetch(`${URL_DE_TU_BACKEND}/api/enviar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from: currentUser,
+                        to: to,
+                        subject: subject,
+                        body: body
+                    })
+                });
+
+                const resultado = await respuesta.json();
+
+                if (resultado.success) {
+                    alert('¡Correo enviado con éxito al mundo exterior!');
+                    hideCompose();
+                    document.getElementById('to').value = '';
+                    document.getElementById('subject').value = '';
+                    document.getElementById('body').value = '';
+                } else {
+                    alert('Error al enviar el correo.');
+                }
+            } catch(error) {
+                alert('No se pudo conectar con el servidor.');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
