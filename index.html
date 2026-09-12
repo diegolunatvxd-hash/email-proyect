@@ -59,7 +59,7 @@
         <!-- Caja para redactar un nuevo correo -->
         <div id="compose-box">
             <h3>Nuevo Mensaje</h3>
-            <input type="email" id="to" placeholder="Para: (ej. amigo@diegomail.com o alguien@gmail.com)">
+            <input type="email" id="to" placeholder="Para: (ej. amigo@diegomail.com)">
             <input type="text" id="subject" placeholder="Asunto">
             <textarea id="body" rows="6" placeholder="Escribe tu mensaje aquí..."></textarea>
             <button class="btn" onclick="sendEmail()">Enviar Correo</button>
@@ -70,10 +70,10 @@
     <script>
         // --- CONFIGURACIÓN ---
         const SUPABASE_URL = 'https://bfsexksfiyggiwwyfgyc.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmc2V4a3NmaXl5Z2l3d3lmZ3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNzMxNTMsImV4cCI6MjEwNDc0OTE1M30.EWPZc9WY5syd9H8zo-0TLvvEuuV-T8HK7kaJgog6hlg'; // <-- Pon aquí tu clave anon / public de Supabase
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmc2V4a3NmaXl5Z2l3d3lmZ3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNzMxNTMsImV4cCI6MjEwNDc0OTE1M30.EWPZc9WY5syd9H8zo-0TLvvEuuV-T8HK7kaJgog6hlg'; // <-- Pon aquí tu clave anon de Supabase
         const URL_DE_TU_BACKEND = 'https://email-proyect.onrender.com';
         
-        // Creamos la conexión con Supabase (Nombre corregido para evitar conflicto)
+        // Creamos la conexión con Supabase
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUser = '';
 
@@ -159,12 +159,12 @@
                 const resultado = await respuesta.json();
 
                 if (resultado.success) {
-                    alert('¡Correo enviado con éxito!');
+                    alert('¡Correo enviado!');
                     hideCompose();
                     document.getElementById('to').value = '';
                     document.getElementById('subject').value = '';
                     document.getElementById('body').value = '';
-                    loadEmails();
+                    loadEmails(); // Recarga la bandeja por si te lo enviaste a ti mismo
                 } else {
                     alert('Error al enviar el correo.');
                 }
