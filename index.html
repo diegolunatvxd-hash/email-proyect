@@ -3,77 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DiegoMail - Tu Servicio de Correo</title>
-    <!-- Importamos la librería de Supabase -->
+    <title>DiegoMail | Sistema de Comunicación Cuántica</title>
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Fuentes tecnológicas -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 15px; margin-bottom: 20px; }
-        .logo { font-size: 24px; font-weight: bold; color: #0056b3; }
-        .btn { background: #0056b3; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn:hover { background: #004494; }
-        .btn-danger { background: #dc3545; }
-        .btn-danger:hover { background: #c82333; }
+        :root {
+            --bg-color: #030a16;
+            --panel-bg: rgba(10, 20, 40, 0.6);
+            --cyan: #00f2fe;
+            --blue: #4facfe;
+            --gradient: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 100%);
+            --text-main: #e0f0ff;
+            --text-muted: #88a0c0;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 242, 254, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(79, 172, 254, 0.08) 0%, transparent 50%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Efecto de cristal y neón */
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.1), inset 0 0 20px rgba(79, 172, 254, 0.05);
+            width: 100%;
+            max-width: 900px;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
+
+        /* Inputs tecnológicos */
+        input, textarea {
+            width: 100%;
+            background: rgba(0, 10, 20, 0.8);
+            border: 1px solid #1a3a5a;
+            color: var(--cyan);
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+        }
+
+        input::placeholder, textarea::placeholder { color: #3a5a7a; }
+
+        /* Botones holográficos */
+        .btn {
+            background: var(--gradient);
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.7);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--cyan);
+            border: 1px solid var(--cyan);
+            box-shadow: none;
+        }
         
-        #login-screen { text-align: center; padding: 50px 20px; }
-        #login-screen input { padding: 10px; font-size: 16px; width: 200px; border: 1px solid #ccc; border-radius: 5px; }
+        .btn-outline:hover {
+            background: rgba(0, 242, 254, 0.1);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+        }
+
+        .btn-danger { background: #ff2a5f; box-shadow: 0 0 15px rgba(255, 42, 95, 0.4); color: white; }
+        .btn-danger:hover { box-shadow: 0 0 25px rgba(255, 42, 95, 0.7); }
+
+        /* Estructura del Layout Principal */
+        #mail-screen { display: none; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 242, 254, 0.2); padding-bottom: 20px; margin-bottom: 20px; }
+        .user-badge { background: rgba(0, 242, 254, 0.1); border: 1px solid var(--cyan); padding: 5px 15px; border-radius: 20px; font-family: 'Orbitron', sans-serif; font-size: 12px; color: var(--cyan); }
         
-        .email-list { border: 1px solid #e1e4e8; border-radius: 5px; height: 400px; overflow-y: auto; background: #fafafa; }
-        .email-item { padding: 15px; border-bottom: 1px solid #e1e4e8; cursor: pointer; transition: background 0.2s; }
-        .email-item:hover { background: #fff; box-shadow: inset 4px 0 0 #0056b3; }
-        .email-item h4 { margin: 0 0 5px 0; color: #333; }
-        .email-item p { margin: 0; color: #666; font-size: 14px; }
+        .layout { display: grid; grid-template-columns: 1fr; gap: 20px; }
         
-        #compose-box { display: none; margin-top: 20px; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; }
-        #compose-box input, #compose-box textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        /* Lista de correos */
+        .email-list { max-height: 400px; overflow-y: auto; padding-right: 10px; }
+        .email-list::-webkit-scrollbar { width: 6px; }
+        .email-list::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 10px; }
+        
+        .email-item {
+            background: rgba(0, 10, 20, 0.5);
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            border-left: 3px solid var(--cyan);
+        }
+        .email-item:hover { background: rgba(79, 172, 254, 0.1); transform: translateX(5px); }
+        .email-item h4 { margin: 0 0 8px 0; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 16px; }
+        .email-item p { margin: 0; color: var(--text-muted); font-size: 15px; }
+        .email-item .meta { font-size: 12px; color: var(--blue); margin-bottom: 10px; text-transform: uppercase; }
+        .email-item hr { border-color: rgba(79, 172, 254, 0.1); margin: 10px 0; }
+
+        /* Caja de redacción */
+        #compose-box { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--cyan); }
     </style>
 </head>
 <body>
 
-    <!-- Pantalla de Inicio de Sesión -->
-    <div class="container" id="login-screen">
-        <div class="logo">✉️ DiegoMail</div>
-        <p>Inicia sesión en tu buzón</p>
-        <input type="text" id="username" placeholder="tu-nombre">
-        <span style="font-size: 18px; font-weight: bold; color: #555;">@diegomail.com</span><br><br>
-        <button class="btn" onclick="login()">Entrar al Buzón</button>
+    <!-- Pantalla de Login -->
+    <div class="glass-panel" id="login-screen" style="max-width: 450px; text-align: center;">
+        <div class="title">DiegoMail</div>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Identificación Requerida</p>
+        
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 25px;">
+            <input type="text" id="username" placeholder="tu-alias" style="margin: 0; width: 60%; text-align: right;">
+            <span style="font-family: 'Orbitron', sans-serif; color: var(--cyan);">@diegomail.com</span>
+        </div>
+        
+        <button class="btn" style="width: 100%;" onclick="login()">INICIALIZAR CONEXIÓN</button>
     </div>
 
-    <!-- Pantalla Principal del Correo -->
-    <div class="container" id="mail-screen" style="display: none;">
-        <div class="header">
-            <div class="logo">✉️ DiegoMail</div>
-            <div id="user-display" style="font-weight: bold; color: #333;"></div>
+    <!-- Pantalla Principal -->
+    <div class="glass-panel" id="mail-screen">
+        <div class="top-bar">
+            <div class="title" style="margin: 0; font-size: 24px;">DiegoMail</div>
+            <div class="user-badge" id="user-display"></div>
             <div>
-                <button class="btn" onclick="showCompose()">+ Redactar</button>
-                <button class="btn btn-danger" onclick="logout()">Salir</button>
+                <button class="btn" onclick="showCompose()">+ NUEVO ENLACE</button>
+                <button class="btn btn-danger" style="margin-left: 10px;" onclick="logout()">DESCONECTAR</button>
             </div>
         </div>
 
-        <h3>Bandeja de Entrada</h3>
-        <div class="email-list" id="inbox">
-            <!-- Los correos se cargarán aquí -->
-        </div>
+        <div class="layout">
+            <div id="inbox-container">
+                <h3 style="font-family: 'Orbitron', sans-serif; color: var(--blue); margin-top: 0;">BANDEJA DE ENTRADA</h3>
+                <div class="email-list" id="inbox"></div>
+            </div>
 
-        <!-- Caja para redactar un nuevo correo -->
-        <div id="compose-box">
-            <h3>Nuevo Mensaje</h3>
-            <input type="email" id="to" placeholder="Para: (ej. amigo@diegomail.com)">
-            <input type="text" id="subject" placeholder="Asunto">
-            <textarea id="body" rows="6" placeholder="Escribe tu mensaje aquí..."></textarea>
-            <button class="btn" onclick="sendEmail()">Enviar Correo</button>
-            <button class="btn" style="background:#6c757d;" onclick="hideCompose()">Cancelar</button>
+            <div id="compose-box">
+                <h3 style="font-family: 'Orbitron', sans-serif; color: var(--cyan); margin-top: 0;">TRANSMITIR MENSAJE</h3>
+                <input type="email" id="to" placeholder="Destinatario (ej. admin@diegomail.com)">
+                <input type="text" id="subject" placeholder="Asunto de la transmisión">
+                <textarea id="body" rows="5" placeholder="Ingresa los datos aquí..."></textarea>
+                <div style="display: flex; gap: 15px;">
+                    <button class="btn" onclick="sendEmail()">ENVIAR DATOS</button>
+                    <button class="btn btn-outline" onclick="hideCompose()">ABORTAR</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓN ---
+        // --- CONFIGURACIÓN DIRECTA ---
         const SUPABASE_URL = 'https://bfsexksfiyggiwwyfgyc.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmc2V4a3NmaXl5Z2l3d3lmZ3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNzMxNTMsImV4cCI6MjEwNDc0OTE1M30.EWPZc9WY5syd9H8zo-0TLvvEuuV-T8HK7kaJgog6hlg'; // <-- Pon aquí tu clave anon de Supabase
-        const URL_DE_TU_BACKEND = 'https://email-proyect.onrender.com';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmc2V4a3NmaXl5Z2l3d3lmZ3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNzMxNTMsImV4cCI6MjEwNDc0OTE1M30.EWPZc9WY5syd9H8zo-0TLvvEuuV-T8HK7kaJgog6hlg';
         
-        // Creamos la conexión con Supabase
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUser = '';
 
@@ -86,7 +216,7 @@
                 document.getElementById('user-display').innerText = currentUser;
                 loadEmails();
             } else {
-                alert("Por favor, ingresa un nombre de usuario.");
+                alert("Error: Identificación vacía.");
             }
         }
 
@@ -94,13 +224,21 @@
             currentUser = '';
             document.getElementById('login-screen').style.display = 'block';
             document.getElementById('mail-screen').style.display = 'none';
+            document.getElementById('username').value = '';
         }
 
-        function showCompose() { document.getElementById('compose-box').style.display = 'block'; }
-        function hideCompose() { document.getElementById('compose-box').style.display = 'none'; }
+        function showCompose() { 
+            document.getElementById('compose-box').style.display = 'block'; 
+            document.getElementById('inbox-container').style.display = 'none'; 
+        }
+        
+        function hideCompose() { 
+            document.getElementById('compose-box').style.display = 'none'; 
+            document.getElementById('inbox-container').style.display = 'block'; 
+        }
 
         async function loadEmails() {
-            document.getElementById('inbox').innerHTML = '<p style="padding: 15px;">Cargando correos...</p>';
+            document.getElementById('inbox').innerHTML = '<p style="color: var(--cyan);">Escaneando transmisiones entrantes...</p>';
             
             const { data, error } = await db
                 .from('emails')
@@ -109,13 +247,12 @@
                 .order('created_at', { ascending: false });
 
             if (error) {
-                console.error(error);
-                document.getElementById('inbox').innerHTML = '<p style="padding: 15px; color: red;">Error al cargar bandeja.</p>';
+                document.getElementById('inbox').innerHTML = '<p style="color: #ff2a5f;">Error de conexión con la base de datos.</p>';
                 return;
             }
 
             if (data.length === 0) {
-                document.getElementById('inbox').innerHTML = '<p style="padding: 15px;">No tienes correos nuevos. ¡Tu bandeja está limpia!</p>';
+                document.getElementById('inbox').innerHTML = '<p style="color: var(--text-muted);">Sin datos. Bandeja de entrada vacía.</p>';
                 return;
             }
 
@@ -124,9 +261,9 @@
                 const date = new Date(email.created_at).toLocaleString();
                 html += `
                     <div class="email-item">
-                        <h4>Asunto: ${email.subject}</h4>
-                        <p><strong>De:</strong> ${email.sender} | <strong>Fecha:</strong> ${date}</p>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+                        <div class="meta">Origen: ${email.sender} // Ciclo: ${date}</div>
+                        <h4>${email.subject}</h4>
+                        <hr>
                         <p>${email.body}</p>
                     </div>
                 `;
@@ -140,36 +277,26 @@
             const body = document.getElementById('body').value.trim();
 
             if(!to || !subject || !body) {
-                alert('Por favor llena todos los campos.');
+                alert('Faltan parámetros de transmisión.');
                 return;
             }
 
+            // AHORA LO ENVIAMOS DIRECTO A SUPABASE DESDE AQUÍ (Adios Render / Fetch Error)
             try {
-                const respuesta = await fetch(`${URL_DE_TU_BACKEND}/api/enviar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        from: currentUser,
-                        to: to,
-                        subject: subject,
-                        body: body
-                    })
-                });
+                const { error } = await db.from('emails').insert([
+                    { sender: currentUser, recipient: to, subject: subject, body: body }
+                ]);
 
-                const resultado = await respuesta.json();
+                if (error) throw error;
 
-                if (resultado.success) {
-                    alert('¡Correo enviado!');
-                    hideCompose();
-                    document.getElementById('to').value = '';
-                    document.getElementById('subject').value = '';
-                    document.getElementById('body').value = '';
-                    loadEmails(); // Recarga la bandeja por si te lo enviaste a ti mismo
-                } else {
-                    alert('Error al enviar el correo.');
-                }
+                alert('Transmisión exitosa.');
+                hideCompose();
+                document.getElementById('to').value = '';
+                document.getElementById('subject').value = '';
+                document.getElementById('body').value = '';
+                loadEmails(); 
             } catch(error) {
-                alert('No se pudo conectar con el servidor.');
+                alert('Fallo en la transmisión de datos.');
                 console.error(error);
             }
         }
