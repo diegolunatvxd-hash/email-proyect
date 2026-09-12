@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DiegoMail - Tu Servicio de Correo</title>
+    <!-- Importamos la librería de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
@@ -67,12 +68,13 @@
     </div>
 
     <script>
-        // --- CONFIGURACIÓN DE SUPABASE (Lectura de bandeja) ---
-        // NOTA: Tienes que poner tu URL y tu ANON KEY de Supabase aquí abajo para poder leer tu bandeja
-        const SUPABASE_URL = 'TU_URL_DE_SUPABASE'; 
-        const SUPABASE_ANON_KEY = 'TU_ANON_KEY';
+        // --- CONFIGURACIÓN ---
+        const SUPABASE_URL = 'https://bfsexksfiyggiwwyfgyc.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'TU_ANON_KEY_AQUI'; // <-- Pon aquí tu clave anon / public de Supabase
+        const URL_DE_TU_BACKEND = 'https://email-proyect.onrender.com';
         
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Creamos la conexión con Supabase (Nombre corregido para evitar conflicto)
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUser = '';
 
         function login() {
@@ -100,13 +102,14 @@
         async function loadEmails() {
             document.getElementById('inbox').innerHTML = '<p style="padding: 15px;">Cargando correos...</p>';
             
-            const { data, error } = await supabase
+            const { data, error } = await db
                 .from('emails')
                 .select('*')
                 .eq('recipient', currentUser)
                 .order('created_at', { ascending: false });
 
             if (error) {
+                console.error(error);
                 document.getElementById('inbox').innerHTML = '<p style="padding: 15px; color: red;">Error al cargar bandeja.</p>';
                 return;
             }
@@ -130,9 +133,6 @@
             });
             document.getElementById('inbox').innerHTML = html;
         }
-
-        // --- AQUÍ ESTÁ TU CÓDIGO EXACTO PARA ENVIAR CORREOS MEDIANTE EL BACKEND ---
-        const URL_DE_TU_BACKEND = 'https://email-proyect.onrender.com';
 
         async function sendEmail() {
             const to = document.getElementById('to').value.trim();
@@ -159,11 +159,12 @@
                 const resultado = await respuesta.json();
 
                 if (resultado.success) {
-                    alert('¡Correo enviado con éxito al mundo exterior!');
+                    alert('¡Correo enviado con éxito!');
                     hideCompose();
                     document.getElementById('to').value = '';
                     document.getElementById('subject').value = '';
                     document.getElementById('body').value = '';
+                    loadEmails();
                 } else {
                     alert('Error al enviar el correo.');
                 }
